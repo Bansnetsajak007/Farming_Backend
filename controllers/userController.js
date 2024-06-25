@@ -1,8 +1,18 @@
-import User from "../../config/models/userModel.js";
-import {Conversation} from "../../config/models/chatModel.js";
+import User from "../config/models/userModel.js";
+import {Conversation} from "../config/models/chatModel.js";
 
 const userController = {
-	get: async (req, res) => {
+	getUserInfo: async (req, res) => {
+		try {
+			const {userId} = req.params;
+			const user = await User.findOne({_id: userId}, {password: 0});
+
+			res.status(200).json({data: user});
+		} catch (error) {
+			return res.status(500).json({message: "Internal Server Error Occured!"});
+		}
+	},
+	getConversation: async (req, res) => {
 		const {userId} = req.params;
 
 		try {
@@ -15,7 +25,7 @@ const userController = {
 				$or: [{senderId: userId}, {receiverId: userId}],
 			});
 
-                  let chattedUserInfo = [];
+			let chattedUserInfo = [];
 			if (conversationUserIsIn) {
 				const userSet = new Set();
 				conversationUserIsIn.forEach((convo) => {
@@ -27,12 +37,19 @@ const userController = {
 				});
 				const chattedUserId = Array.from(userSet);
 
-                        chattedUserInfo = await User.find({ _id: { $in: chattedUserId } }, 'username email');
+				chattedUserInfo = await User.find(
+					{_id: {$in: chattedUserId}},
+					"username email phoneNumber type"
+				);
 			}
 
 			return res
 				.status(200)
-				.json({message: "retrieved users successfully", users, chattedUsers: chattedUserInfo});
+				.json({
+					message: "retrieved users successfully",
+					// users, // TODO: check if it's needed or not. => seems like not
+					chattedUsers: chattedUserInfo,
+				});
 		} catch (err) {
 			console.error(err);
 			return res.status(500).json({message: "Unable to retrieve users"});

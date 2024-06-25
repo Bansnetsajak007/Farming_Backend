@@ -7,7 +7,7 @@ import fetchuser from "../middleware/fetchuser.js";
 
 
 // routes
-router.get("/", authController.get);
+router.get("/", fetchuser, authController.get);
 router.post("/otp", authController.SendOTP);
 router.post("/otp/verify", authController.VerifyOTP);
 router.post("/login", authController.Login);  

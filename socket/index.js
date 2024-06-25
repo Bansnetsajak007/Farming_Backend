@@ -84,14 +84,14 @@ io.on("connection", async (socket) => {
 
 				// // if new conversation, emit to user so, one can list people, he had conversate with
 				if (isNewConversation) {
-					const userData = await User.find({_id: receiverId}, "username email");
+					const userData = await User.find({_id: receiverId}, {password: 0});
 					io.to(senderSocketId).emit("newConversationStart", userData);
 				}
 			}
 			if (receiverSocketId) {
 				io.to(receiverSocketId).emit("receiveMessage", saveMessage); // send message, as well as notify
 				if (isNewConversation) {
-					const userData = await User.find({_id: senderId}, "username email");
+					const userData = await User.find({_id: senderId}, {password: 0});
 					io.to(receiverSocketId).emit("newConversationStart", userData);
 				}
 			}
@@ -111,7 +111,12 @@ io.on("connection", async (socket) => {
 			],
 		});
 
-		if (!conversation) return;
+		// no conversation, send empty array
+		if (!conversation) {
+			const viewerSocketId = onlineUser.get(viewer);
+			io.to(viewerSocketId).emit("receiveConversation", []);
+			return;
+		};
 
 		const conversationMessageId = conversation?.messages || [];
 		await Message.updateMany(
@@ -132,8 +137,6 @@ io.on("connection", async (socket) => {
 			const senderId = messages[i].senderId;
 			if (senderId != viewer) {
 				const senderSocketId = onlineUser.get(roomer);
-				// console.log(senderId, senderSocketId)
-				// console.log(messages[i]._id, messages[i].senderId)
 
 				if (senderSocketId) {
 					io.to(senderSocketId).emit("messageSeen", messages[i]._id);
@@ -159,7 +162,7 @@ io.on("connection", async (socket) => {
 	socket.on("disconnect", () => {
 		onlineUser.delete(mutableClientSocketId);
 		io.emit("onlineUser", Array.from(onlineUser.values()));
-		console.log("disconnect user ", socket.id);
+		console.log("disconnect user ", socket.id, "\n");
 	});
 });
 

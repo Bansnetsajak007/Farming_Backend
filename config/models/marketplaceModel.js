@@ -7,13 +7,19 @@ const marketplaceSchema = new Schema({
         ref: "User",
         required: true,
     },
-	itemName: {
+	postedBy: {
 		type: String,
 		require: true
+	},
+	itemName: {
+		type: String,
+		require: true,
+		maxLength: 50
 	},
 	itemType: {
 		type: String,
 		enum: ["animal", "product", "tool", "machinery"],
+		default: "animal",
 		require: true
 	},
 	pictureUrl: {
@@ -36,6 +42,7 @@ const marketplaceSchema = new Schema({
 	details: {
 		type: String,
 		require: true,
+		maxLength: 1000,
 	},
 	location: {
 		type: String,
@@ -47,11 +54,7 @@ const marketplaceSchema = new Schema({
 		require: true,
 		default: "sale"
 	},
-	date: {
-		type: Date,
-		require: true,
-	},
-});
+}, {timestamps: true});
 
 const Marketplace =
 	models.Marketplace || model("Marketplace", marketplaceSchema);

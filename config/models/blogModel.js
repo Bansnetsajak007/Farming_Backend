@@ -1,11 +1,27 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 const postSchema = new mongoose.Schema({
-  title: String,
-  body: String,
-  created_at: { type: Date, default: Date.now }
-});
+  title: {
+    type: String,
+    require: true,
+    maxLength: 150
+  },
+  body: {
+    type: String,
+    require: true,
+    maxLength: 2000
+  },
+  createdBy: {
+    type: String,
+    require: true
+  },
+  userId: {
+    type: Types.ObjectId,
+    require: true,
+    ref: "User"
+  }
+}, {timestamps: true});
 
-const Blogs = mongoose.model('Post', postSchema);
+const Blogs = mongoose.Blog || mongoose.model('Blog', postSchema);
 
 export default Blogs;

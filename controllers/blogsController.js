@@ -1,63 +1,105 @@
 import Blogs from "../config/models/blogModel.js";
 
 const blogsController = {
-    get: async (req, res) => {
-        try {
-            const data = await Blogs.find();
-            if(data) return res.status(200).json({message: "Data Fetched successfully"});
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({message: error.message});
-        }
-       
-    },
+	get: async (req, res) => {
+		try {
+			const data = await Blogs.find().sort({updatedAt: -1});
+			if (data) return res.status(200).json({data});
+		} catch (error) {
+			console.log(error);
+			return res.status(500).json({message: error.message});
+		}
+	},
 
-    createPost: async(req, res) => {
-        try {
-            const { title, body } = req.body;
-            const newPost = new Blogs({ title, body });
-            await newPost.save();
-            res.status(201).json(newPost);
-          } catch (err) {
-            res.status(500).json({ error: err.message });
-          }
-    },
+	getUserPosts: async (req, res) => {
+		const {userId} = req;
 
-    getPost: async(req, res) => {
-        try {
-            const post = await Blogs.findById(req.params.id);
-            if (!post) return res.status(404).json({ error: 'Post not found' });
-            res.json(post);
-          } catch (err) {
-            res.status(500).json({ error: err.message });
-          }
-    },
+		try {
+			const data = await Blogs.find({userId}).sort({updatedAt: -1});
+			if (data) return res.status(200).json({data});
+		} catch (error) {
+			console.log(error);
+			return res.status(500).json({message: error.message});
+		}
+	},
+	getUserRelatedPosts: async (req, res) => {
+		const {userId} = req.params;
 
-    updatePost: async(req, res) => {
-        try {
-            const { title, body } = req.body;
-            const post = await Blogs.findByIdAndUpdate(
-              req.params.id,
-              { title, body },
-              { new: true }
-            );
-            if (!post) return res.status(404).json({ error: 'Post not found' });
-            res.json(post);
-          } catch (err) {
-            res.status(500).json({ error: err.message });
-          }
-        
-    },
+		try {
+			const data = await Blogs.find({userId}).sort({updatedAt: -1});
+			if (data) return res.status(200).json({data});
+		} catch (error) {
+			console.log(error);
+			return res.status(500).json({message: error.message});
+		}
+	},
 
-    deletePost: async(req, res) => {
-        try {
-            const post = await Blogs.findByIdAndDelete(req.params.id);
-            if (!post) return res.status(404).json({ error: 'Post not found' });
-            res.json({ message: 'Post deleted' });
-          } catch (err) {
-            res.status(500).json({ error: err.message });
-          }
-    }
-}
+	createPost: async (req, res) => {
+		const {userId, username} = req;
 
-export default blogsController
+		try {
+			const {title, body} = req.body;
+			const newPost = new Blogs({title, body, createdBy: username, userId});
+			await newPost.save();
+			res.status(200).json({message: "Your post has been created"});
+		} catch (err) {
+			res.status(500).json({message: "Internal Server Error Occured !"});
+		}
+	},
+
+	getSinglePost: async (req, res) => {
+		const {id} = req.params;
+
+		try {
+			const post = await Blogs.findById(id);
+			if (!post) return res.status(404).json({error: "Post not found"});
+			res.status(200).json({data: post});
+		} catch (err) {
+			res.status(500).json({message: "Internal Server Error Occured !"});
+		}
+	},
+
+	getSingleUserPost: async (req, res) => {
+		const {id} = req.params;
+		const {userId} = req;
+		try {
+			const post = await Blogs.findOne({_id: id, userId});
+			if (!post) return res.status(404).json({error: "Post not found"});
+			res.status(200).json({data: post});
+		} catch (err) {
+			res.status(500).json({message: "Internal Server Error Occured !"});
+		}
+	},
+
+	updatePost: async (req, res) => {
+		const {id} = req.params;
+		try {
+			const {title, body} = req.body;
+			// console.log(title, body)
+
+			const post = await Blogs.findByIdAndUpdate(
+				id,
+				{title, body},
+				{new: true}
+			);
+			if (!post) return res.status(404).json({error: "Post not found"});
+			res.status(200).json({data: post});
+		} catch (err) {
+			res.status(500).json({error: err.message});
+		}
+	},
+
+	deletePost: async (req, res) => {
+		const {id} = req.params;
+		const {userId} = req;
+		try {
+			const post = await Blogs.findOneAndDelete({_id: id, userId});
+			if (!post) return res.status(404).json({error: "Post not found"});
+			res.status(200).json({message: "Post deleted"});
+		} catch (err) {
+			res.status(500).json({error: err.message});
+		}
+	},
+};
+
+export default blogsController;
